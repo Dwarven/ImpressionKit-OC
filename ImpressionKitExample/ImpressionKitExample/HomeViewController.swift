@@ -84,10 +84,22 @@ class HomeViewController: FormViewController {
                 return ScrollViewDemoViewController()
             }), onDismiss: nil)
         }
+        <<< ButtonRow("UIScrollViewOC") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                return ScrollViewDemoViewControllerOC()
+            }), onDismiss: nil)
+        }
         <<< ButtonRow("UICollectionView (reusable views)") { row in
             row.title = row.tag
             row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
                 return CollectionViewDemoViewController()
+            }), onDismiss: nil)
+        }
+        <<< ButtonRow("UICollectionViewOC (reusable views)") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                return CollectionViewDemoViewControllerOC()
             }), onDismiss: nil)
         }
         <<< ButtonRow("UICollectionView (only detect 2nd section)") { row in
@@ -96,10 +108,22 @@ class HomeViewController: FormViewController {
                 return CollectionViewDemo2ViewController()
             }), onDismiss: nil)
         }
+        <<< ButtonRow("UICollectionViewOC (only detect 2nd section)") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                return CollectionViewDemo2ViewControllerOC()
+            }), onDismiss: nil)
+        }
         <<< ButtonRow("UITableView (reusable views)") { row in
             row.title = row.tag
             row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
                 return TableViewDemoViewController()
+            }), onDismiss: nil)
+        }
+        <<< ButtonRow("UITableViewOC (reusable views)") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                return TableViewDemoViewControllerOC()
             }), onDismiss: nil)
         }
         <<< ButtonRow("SwiftUI ScrollView") { row in
@@ -112,11 +136,31 @@ class HomeViewController: FormViewController {
                 }
             }), onDismiss: nil)
         }
+        <<< ButtonRow("SwiftUI ScrollView OC") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                if #available(iOS 13.0, *) {
+                    return UIHostingController(rootView: SwiftUIScrollViewDemoViewOC())
+                } else {
+                    fatalError()
+                }
+            }), onDismiss: nil)
+        }
         <<< ButtonRow("SwiftUI List (reusable views)") { row in
             row.title = row.tag
             row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
                 if #available(iOS 13.0, *) {
                     return UIHostingController(rootView: SwiftUIListDemoView())
+                } else {
+                    fatalError()
+                }
+            }), onDismiss: nil)
+        }
+        <<< ButtonRow("SwiftUI List OC (reusable views)") { row in
+            row.title = row.tag
+            row.presentationMode = .show(controllerProvider: ControllerProvider<UIViewController>.callback(builder: { () -> UIViewController in
+                if #available(iOS 13.0, *) {
+                    return UIHostingController(rootView: SwiftUIListDemoViewOC())
                 } else {
                     fatalError()
                 }
