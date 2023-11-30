@@ -83,6 +83,14 @@
 }
 
 - (void)bindWithView:(UIView *)view index:(NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection {
+    [self bindWithView:view index:index ignoreDetection:ignoreDetection customization:NULL];
+}
+
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(void))customization {
+    [self bindWithView:view index:index ignoreDetection:NO customization:customization];
+}
+
+- (void)bindWithView:(UIView *)view index:(NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(void(^)(void))customization {
     if (!view || !index) return;
     [view impk_stopTimer];
     NSIndexPath *previousIndex = nil;
@@ -107,6 +115,7 @@
     view.impk_areaRatioThreshold = self.areaRatioThreshold;
     view.impk_redetectOptions = self.redetectOptions;
     view.impk_unimpressedOutOfScreenOptions = self.unimpressedOutOfScreenOptions;
+    if (customization) customization();
     ImpkStateModel *currentState = self.states[index];
     if (!currentState || currentState.state != ImpkStateImpressed) {
         ImpkStateModel *state = [ImpkStateModel modelWithState:ImpkStateUnknown];
@@ -129,6 +138,14 @@
     if (self.impressionGroupCallback) self.impressionGroupCallback(self, index, view, state);
 }
 
+- (void)unbindIndex:(NSIndexPath *)index {
+    if (!index) return;
+    UIView *view = [self.views objectForKey:index];
+    if (view) [view impk_detectImpression:nil];
+    [self.views removeObjectForKey:index];
+    self.states[index] = [ImpkStateModel modelWithState:ImpkStateUnknown];
+}
+
 - (void)redetect {
     [self resetGroupStateAndRedetect:[ImpkStateModel modelWithState:ImpkStateUnknown]];
 }
@@ -138,7 +155,7 @@
         UIView *view = [self.views objectForKey:index];
         if (!view) {
             [self.views removeObjectForKey:index];
-            return;
+            continue;
         }
         [self changeStateWithIndex:index view:view state:state];
         [view impk_detectImpression:self.impressionBlock state:state];

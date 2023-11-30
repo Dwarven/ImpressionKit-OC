@@ -20,6 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithCallback:(void(^)(ImpkGroup *group, NSIndexPath *index, UIView *view, ImpkStateModel *state))callback;
 - (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index;
 - (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection;
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(void))customization;
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(nullable void(^)(void))customization;
+- (void)unbindIndex:(nullable NSIndexPath *)index;
 - (void)redetect;
 
 @end
