@@ -54,7 +54,7 @@
             }
             if (!index) return;
             ImpkStateModel *previousState = weakSelf.states[index];
-            if (previousState) {
+            if (!(state.state == ImpkStateInScreen && view.impk_callBackForEqualInScreenState) && previousState) {
                 if ([previousState isEqual:state]) return;
             }
             if ([view impk_isRedetectionOn:ImpkRedetectOptionViewControllerDidDisappear] && state.state == ImpkStateViewControllerDidDisappear) {
@@ -86,11 +86,11 @@
     [self bindWithView:view index:index ignoreDetection:ignoreDetection customization:NULL];
 }
 
-- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(void))customization {
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(UIView *view))customization {
     [self bindWithView:view index:index ignoreDetection:NO customization:customization];
 }
 
-- (void)bindWithView:(UIView *)view index:(NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(void(^)(void))customization {
+- (void)bindWithView:(UIView *)view index:(NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(void(^)(UIView *view))customization {
     if (!view || !index) return;
     [view impk_stopTimer];
     NSIndexPath *previousIndex = nil;
@@ -115,7 +115,8 @@
     view.impk_areaRatioThreshold = self.areaRatioThreshold;
     view.impk_redetectOptions = self.redetectOptions;
     view.impk_unimpressedOutOfScreenOptions = self.unimpressedOutOfScreenOptions;
-    if (customization) customization();
+    view.impk_callBackForEqualInScreenState = self.callBackForEqualInScreenState;
+    if (customization) customization(view);
     ImpkStateModel *currentState = self.states[index];
     if (!currentState || currentState.state != ImpkStateImpressed) {
         ImpkStateModel *state = [ImpkStateModel modelWithState:ImpkStateUnknown];
@@ -168,7 +169,7 @@
 
 - (void)changeStateWithIndex:(NSIndexPath *)index view:(UIView *)view state:(ImpkStateModel *)state {
     ImpkStateModel *previousState = self.states[index];
-    if (previousState) {
+    if (!(state.state == ImpkStateInScreen && view.impk_callBackForEqualInScreenState) && previousState) {
         if ([previousState isEqual:state]) return;
     }
     self.states[index] = state;

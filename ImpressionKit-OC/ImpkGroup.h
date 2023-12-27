@@ -16,12 +16,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSNumber *areaRatioThreshold;
 @property (nonatomic, assign) ImpkRedetectOption redetectOptions;
 @property (nonatomic, assign) ImpkUnimpressedOutOfScreenOption unimpressedOutOfScreenOptions;
+@property (nonatomic, assign) BOOL callBackForEqualInScreenState;
 
 - (instancetype)initWithCallback:(void(^)(ImpkGroup *group, NSIndexPath *index, UIView *view, ImpkStateModel *state))callback;
 - (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index;
 - (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection;
-- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(void))customization;
-- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(nullable void(^)(void))customization;
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index customization:(nullable void(^)(UIView *view))customization;
+- (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index ignoreDetection:(BOOL)ignoreDetection customization:(nullable void(^)(UIView *view))customization;
 - (void)unbindIndex:(nullable NSIndexPath *)index;
 - (void)redetect;
 

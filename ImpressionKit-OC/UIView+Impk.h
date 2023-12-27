@@ -39,8 +39,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) ImpkState state;
 /// not nil when state is ImpkStateImpressed or ImpkStateInScreen
 @property (nonatomic, strong) NSDate *date;
+@property (nonatomic, strong) NSDate *updateDate;
 /// not 0 when state is ImpkStateImpressed
 @property (nonatomic, assign) CGFloat areaRatio;
+@property (nonatomic, assign) CGRect rectInSelf;
+@property (nonatomic, assign) CGRect rectInWindow;
+@property (nonatomic, assign) CGRect rectInScreen;
 
 + (ImpkStateModel *)modelWithState:(ImpkState)state;
 
@@ -63,6 +67,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, nullable) NSNumber *impk_bottomEdgeInset;
 @property (nonatomic, copy, nullable) NSNumber *impk_rightEdgeInset;
 @property (nonatomic, strong, readonly) ImpkStateModel *impk_state;
+@property (nonatomic, assign) BOOL impk_callBackForEqualInScreenState;
 
 - (void)impk_detectImpression:(nullable void(^)(UIView *view, ImpkStateModel *state))block;
 - (void)impk_detectImpression:(nullable void(^)(UIView *view, ImpkStateModel *state))block state:(nullable ImpkStateModel *)state;

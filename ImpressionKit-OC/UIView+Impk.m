@@ -17,18 +17,26 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
 @implementation ImpkStateModel
 
 + (ImpkStateModel *)modelWithState:(ImpkState)state {
-    return [ImpkStateModel modelWithState:state date:nil];
+    return [ImpkStateModel modelWithState:state date:[NSDate date]];
 }
 
 + (ImpkStateModel *)modelWithState:(ImpkState)state date:(NSDate *)date {
-    return [ImpkStateModel modelWithState:state date:date areaRatio:0];
+    return [ImpkStateModel modelWithState:state date:date areaRatio:0 rectInSelf:CGRectZero rectInWindow:CGRectZero rectInScreen:CGRectZero];
 }
 
-+ (ImpkStateModel *)modelWithState:(ImpkState)state date:(NSDate *)date areaRatio:(CGFloat)areaRatio {
++ (ImpkStateModel *)modelWithState:(ImpkState)state date:(NSDate *)date areaRatio:(CGFloat)areaRatio rectInSelf:(CGRect)rectInSelf rectInWindow:(CGRect)rectInWindow rectInScreen:(CGRect)rectInScreen {
+    return [ImpkStateModel modelWithState:state date:date updateDate:date areaRatio:areaRatio rectInSelf:rectInSelf rectInWindow:rectInWindow rectInScreen:rectInScreen];
+}
+
++ (ImpkStateModel *)modelWithState:(ImpkState)state date:(NSDate *)date updateDate:(NSDate *)updateDate areaRatio:(CGFloat)areaRatio rectInSelf:(CGRect)rectInSelf rectInWindow:(CGRect)rectInWindow rectInScreen:(CGRect)rectInScreen {
     ImpkStateModel *model = [[ImpkStateModel alloc] init];
     model.state = state;
     model.date = date;
+    model.updateDate = updateDate;
     model.areaRatio = areaRatio;
+    model.rectInSelf = rectInSelf;
+    model.rectInWindow = rectInWindow;
+    model.rectInScreen = rectInScreen;
     return model;
 }
 
@@ -335,7 +343,7 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
 - (void)setImpk_privateState:(ImpkStateModel *)impk_privateState {
     ImpkStateModel *old = self.impk_privateState;
     objc_setAssociatedObject(self, @selector(impk_privateState), impk_privateState, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if ([old isEqual:impk_privateState]) return;
+    if (!(impk_privateState.state == ImpkStateInScreen && self.impk_callBackForEqualInScreenState) && [old isEqual:impk_privateState]) return;
     if ([self impk_isDetectionOn]) self.impk_getStateCallback(self, impk_privateState);
 }
 
@@ -409,6 +417,14 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
 
 - (void)setImpk_rightEdgeInset:(NSNumber *)impk_rightEdgeInset {
     objc_setAssociatedObject(self, @selector(impk_rightEdgeInset), impk_rightEdgeInset, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (BOOL)impk_callBackForEqualInScreenState {
+    return [objc_getAssociatedObject(self, @selector(impk_callBackForEqualInScreenState)) boolValue];
+}
+
+- (void)setImpk_callBackForEqualInScreenState:(BOOL)impk_callBackForEqualInScreenState {
+    objc_setAssociatedObject(self, @selector(impk_callBackForEqualInScreenState), @(impk_callBackForEqualInScreenState), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (ImpkObserverArray *)impk_notificationTokens {
@@ -515,26 +531,44 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
     return rect;
 }
 
-- (CGFloat)impk_areaRatio {
-    if (self.hidden || self.alpha <= CGFLOAT_MIN) return 0;
-    if ([self isKindOfClass:[UIWindow class]] && !self.superview) {
+- (void)impk_areaRatio:(void(^)(CGFloat areaRatio, CGRect rectInSelf, CGRect rectInWindow, CGRect rectInScreen))completion {
+    if (!completion) return;
+    if (self.hidden || self.alpha <= CGFLOAT_MIN) {
+        completion(0, CGRectZero, CGRectZero, CGRectZero);
+    } else if ([self isKindOfClass:[UIWindow class]] && !self.superview) {
         CGRect validFrame = [self impk_validFrame];
         CGRect intersection = CGRectIntersection(validFrame, [[(UIWindow *)self screen] bounds]);
         CGFloat ratio = (intersection.size.width * intersection.size.height) / (validFrame.size.width * validFrame.size.height);
-        return [self impk_fixRatioPrecisionWithNumber:ratio];
+        CGFloat areaRatio = [self impk_fixRatioPrecisionWithNumber:ratio];
+        if (areaRatio > 0) {
+            CGRect rectInWindow = CGRectMake(intersection.origin.x - self.frame.origin.x,
+                                             intersection.origin.y - self.frame.origin.y,
+                                             intersection.size.width,
+                                             intersection.size.height);
+            completion(areaRatio, rectInWindow, rectInWindow, intersection);
+        } else {
+            completion(0, CGRectZero, CGRectZero, CGRectZero);
+        }
+    } else if (!self.window || self.window.hidden || self.window.alpha <= CGFLOAT_MIN) {
+        completion(0, CGRectZero, CGRectZero, CGRectZero);
     } else {
-        if (!self.window || self.window.hidden || self.window.alpha <= CGFLOAT_MIN) return 0;
         UIView *aView = self;
         CGRect validBounds = [self impk_validBounds];
         CGRect frameInSuperView = validBounds;
         while (aView.superview) {
-            if (aView.superview.hidden || aView.superview.alpha <= CGFLOAT_MIN) return 0;
+            if (aView.superview.hidden || aView.superview.alpha <= CGFLOAT_MIN) {
+                completion(0, CGRectZero, CGRectZero, CGRectZero);
+                return;
+            }
             frameInSuperView = [aView convertRect:frameInSuperView toView:aView.superview];
             frameInSuperView = [aView.superview impk_rectForEdgeInsetsWithRect:frameInSuperView];
             if (aView.clipsToBounds) {
                 frameInSuperView = CGRectIntersection(frameInSuperView, aView.frame);
             }
-            if (CGRectIsEmpty(frameInSuperView)) return 0;
+            if (CGRectIsEmpty(frameInSuperView)) {
+                completion(0, CGRectZero, CGRectZero, CGRectZero);
+                return;
+            }
             aView = aView.superview;
         }
         CGRect frameInWindow = frameInSuperView;
@@ -547,7 +581,16 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
         }
         CGRect intersection = CGRectIntersection(frameInScreen, self.window.screen.bounds);
         CGFloat ratio = (intersection.size.width * intersection.size.height) / (validBounds.size.width * validBounds.size.height);
-        return [self impk_fixRatioPrecisionWithNumber:ratio];
+        CGFloat areaRatio = [self impk_fixRatioPrecisionWithNumber:ratio];
+        if (areaRatio > 0) {
+            CGRect rectInWindow = CGRectMake(intersection.origin.x - self.window.frame.origin.x,
+                                             intersection.origin.y - self.window.frame.origin.y,
+                                             intersection.size.width,
+                                             intersection.size.height);
+            completion(areaRatio, [self.window convertRect:rectInWindow toView:self], rectInWindow, intersection);
+        } else {
+            completion(0, CGRectZero, CGRectZero, CGRectZero);
+        }
     }
 }
 
@@ -599,24 +642,28 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
     if (self.impk_privateState.state == ImpkStateImpressed) {
         if (![self impk_isRedetectionOn:ImpkRedetectOptionLeftScreen]) return;
     }
-    CGFloat areaRatio = [self impk_areaRatio];
-    CGFloat areaRatioThreshold = self.impk_areaRatioThreshold ? self.impk_areaRatioThreshold.floatValue : UIView.impk_areaRatioThreshold;
-    if (areaRatio >= areaRatioThreshold) {
-        if (self.impk_privateState.state == ImpkStateInScreen) {
-            NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:self.impk_privateState.date];
-            CGFloat durationThreshold = self.impk_durationThreshold ? self.impk_durationThreshold.floatValue : UIView.impk_durationThreshold;
-            if (interval >= durationThreshold) {
-                self.impk_privateState = [ImpkStateModel modelWithState:ImpkStateImpressed date:[NSDate date] areaRatio:areaRatio];
-                if (![self impk_keepDetectionAfterImpressed]) {
-                    [self impk_stopTimer];
+    __typeof(self) __weak weakSelf = self;
+    [self impk_areaRatio:^(CGFloat areaRatio, CGRect rectInSelf, CGRect rectInWindow, CGRect rectInScreen) {
+        CGFloat areaRatioThreshold = weakSelf.impk_areaRatioThreshold ? weakSelf.impk_areaRatioThreshold.floatValue : UIView.impk_areaRatioThreshold;
+        if (areaRatio >= areaRatioThreshold) {
+            if (weakSelf.impk_privateState.state == ImpkStateInScreen) {
+                NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:weakSelf.impk_privateState.date];
+                CGFloat durationThreshold = weakSelf.impk_durationThreshold ? weakSelf.impk_durationThreshold.floatValue : UIView.impk_durationThreshold;
+                if (interval >= durationThreshold) {
+                    weakSelf.impk_privateState = [ImpkStateModel modelWithState:ImpkStateImpressed date:[NSDate date] areaRatio:areaRatio rectInSelf:rectInSelf rectInWindow:rectInWindow rectInScreen:rectInScreen];
+                    if (![weakSelf impk_keepDetectionAfterImpressed]) {
+                        [weakSelf impk_stopTimer];
+                    }
+                } else if (weakSelf.impk_callBackForEqualInScreenState) {
+                    weakSelf.impk_privateState = [ImpkStateModel modelWithState:ImpkStateInScreen date:weakSelf.impk_privateState.date updateDate:[NSDate date] areaRatio:areaRatio rectInSelf:rectInSelf rectInWindow:rectInWindow rectInScreen:rectInScreen];
                 }
+            } else if (weakSelf.impk_privateState.state != ImpkStateImpressed) {
+                weakSelf.impk_privateState = [ImpkStateModel modelWithState:ImpkStateInScreen date:[NSDate date] areaRatio:areaRatio rectInSelf:rectInSelf rectInWindow:rectInWindow rectInScreen:rectInScreen];
             }
-        } else if (self.impk_privateState.state != ImpkStateImpressed) {
-            self.impk_privateState = [ImpkStateModel modelWithState:ImpkStateInScreen date:[NSDate date]];
+        } else {
+            weakSelf.impk_privateState = [ImpkStateModel modelWithState:ImpkStateOutOfScreen];
         }
-    } else {
-        self.impk_privateState = [ImpkStateModel modelWithState:ImpkStateOutOfScreen];
-    }
+    }];
 }
 
 - (void)impk_startTimerIfNeeded {
