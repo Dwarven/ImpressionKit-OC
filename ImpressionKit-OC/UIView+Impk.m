@@ -185,6 +185,10 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
     self.impk_hookingViewDidDisappear = NO;
 }
 
+- (BOOL)impk_isHidden {
+    return self.impk_ignoreHidden ? NO : self.isHidden;
+}
+
 - (void)impk_viewControllerDidDisappear:(BOOL)animated {
     if ([self impk_isRedetectionOn:ImpkRedetectOptionViewControllerDidDisappear]) {
         self.impk_privateState = [ImpkStateModel modelWithState:ImpkStateViewControllerDidDisappear];
@@ -427,6 +431,14 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
     objc_setAssociatedObject(self, @selector(impk_callBackForEqualInScreenState), @(impk_callBackForEqualInScreenState), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
+- (BOOL)impk_ignoreHidden {
+    return [objc_getAssociatedObject(self, @selector(impk_ignoreHidden)) boolValue];
+}
+
+- (void)setImpk_ignoreHidden:(BOOL)impk_ignoreHidden {
+    objc_setAssociatedObject(self, @selector(impk_ignoreHidden), @(impk_ignoreHidden), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 - (ImpkObserverArray *)impk_notificationTokens {
     return objc_getAssociatedObject(self, @selector(impk_notificationTokens));
 }
@@ -533,7 +545,7 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
 
 - (void)impk_areaRatio:(void(^)(CGFloat areaRatio, CGRect rectInSelf, CGRect rectInWindow, CGRect rectInScreen))completion {
     if (!completion) return;
-    if (self.hidden || self.alpha <= CGFLOAT_MIN) {
+    if (self.impk_isHidden || self.alpha <= CGFLOAT_MIN) {
         completion(0, CGRectZero, CGRectZero, CGRectZero);
     } else if ([self isKindOfClass:[UIWindow class]] && !self.superview) {
         CGRect validFrame = [self impk_validFrame];
@@ -549,14 +561,14 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
         } else {
             completion(0, CGRectZero, CGRectZero, CGRectZero);
         }
-    } else if (!self.window || self.window.hidden || self.window.alpha <= CGFLOAT_MIN) {
+    } else if (!self.window || self.window.impk_isHidden || self.window.alpha <= CGFLOAT_MIN) {
         completion(0, CGRectZero, CGRectZero, CGRectZero);
     } else {
         UIView *aView = self;
         CGRect validBounds = [self impk_validBounds];
         CGRect frameInSuperView = validBounds;
         while (aView.superview) {
-            if (aView.superview.hidden || aView.superview.alpha <= CGFLOAT_MIN) {
+            if (aView.superview.impk_isHidden || aView.superview.alpha <= CGFLOAT_MIN) {
                 completion(0, CGRectZero, CGRectZero, CGRectZero);
                 return;
             }

@@ -68,6 +68,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, nullable) NSNumber *impk_rightEdgeInset;
 @property (nonatomic, strong, readonly) ImpkStateModel *impk_state;
 @property (nonatomic, assign) BOOL impk_callBackForEqualInScreenState;
+@property (nonatomic, assign) BOOL impk_ignoreHidden;
 
 - (void)impk_detectImpression:(nullable void(^)(UIView *view, ImpkStateModel *state))block;
 - (void)impk_detectImpression:(nullable void(^)(UIView *view, ImpkStateModel *state))block state:(nullable ImpkStateModel *)state;

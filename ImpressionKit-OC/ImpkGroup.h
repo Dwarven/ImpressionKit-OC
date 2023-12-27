@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) ImpkRedetectOption redetectOptions;
 @property (nonatomic, assign) ImpkUnimpressedOutOfScreenOption unimpressedOutOfScreenOptions;
 @property (nonatomic, assign) BOOL callBackForEqualInScreenState;
+@property (nonatomic, assign) BOOL ignoreHidden;
 
 - (instancetype)initWithCallback:(void(^)(ImpkGroup *group, NSIndexPath *index, UIView *view, ImpkStateModel *state))callback;
 - (void)bindWithView:(nullable UIView *)view index:(nullable NSIndexPath *)index;

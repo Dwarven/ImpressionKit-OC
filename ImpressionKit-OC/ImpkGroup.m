@@ -116,6 +116,7 @@
     view.impk_redetectOptions = self.redetectOptions;
     view.impk_unimpressedOutOfScreenOptions = self.unimpressedOutOfScreenOptions;
     view.impk_callBackForEqualInScreenState = self.callBackForEqualInScreenState;
+    view.impk_ignoreHidden = self.ignoreHidden;
     if (customization) customization(view);
     ImpkStateModel *currentState = self.states[index];
     if (!currentState || currentState.state != ImpkStateImpressed) {
