@@ -323,7 +323,7 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
                     }
                 }
             } else {
-                NSAssert(NO, nil);
+                assert(NO);
                 return;
             }
             [weakSelf impk_startTimerIfNeeded];
@@ -456,7 +456,7 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
 }
 
 - (void)impk_detectImpression:(void(^)(UIView *, ImpkStateModel *))block state:(ImpkStateModel *)state {
-    NSAssert([NSThread isMainThread], @"");
+    assert([NSThread isMainThread]);
     self.impk_privateState = state;
     if (block) {
         objc_setAssociatedObject(self, @selector(impk_getStateCallback), ^(UIView *view, ImpkStateModel *state) {
