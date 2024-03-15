@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name             = 'ImpressionKit-OC'
-  s.version          = '0.0.3'
+  s.version          = '0.0.4'
   s.summary          = 'This is a library to analyze impression events for UIView in iOS (exposure of UIView).'
   s.homepage         = 'https://github.com/Dwarven/ImpressionKit-OC'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
