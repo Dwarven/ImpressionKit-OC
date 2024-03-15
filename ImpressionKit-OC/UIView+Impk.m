@@ -706,6 +706,7 @@ static ImpkUnimpressedOutOfScreenOption impkunimpressedOutOfScreenOptions = Impk
         }
     }];
     [NSRunLoop.mainRunLoop addTimer:self.impk_timer forMode:NSRunLoopCommonModes];
+    [self.impk_timer fire];
 }
 
 - (void)impk_stopTimer {

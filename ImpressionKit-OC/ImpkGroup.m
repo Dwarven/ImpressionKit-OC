@@ -135,6 +135,11 @@
     }
 }
 
+- (UIView *)viewForIndex:(NSIndexPath *)index {
+    if (!index) return nil;
+    return [self.views objectForKey:index];
+}
+
 - (void)bindStateWithIndex:(NSIndexPath *)index view:(UIView *)view state:(ImpkStateModel *)state {
     self.states[index] = state;
     if (self.impressionGroupCallback) self.impressionGroupCallback(self, index, view, state);
